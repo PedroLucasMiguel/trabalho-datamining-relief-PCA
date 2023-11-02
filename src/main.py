@@ -35,10 +35,10 @@ def extract_features(dataset_path:str = '../dataset') -> None:
     resnet_model = ResNet50(2)
     densenet_model = DenseNet201(2)
 
-    fe(model=resnet_model,
-        data_loader=data_loader,
-        arff_file_name="resnet50_avgpool",
-        arff_file_path="..\\output")
+    #fe(model=resnet_model,
+    #    data_loader=data_loader,
+    #    arff_file_name="resnet50_avgpool",
+    #    arff_file_path="..\\output")
 
     fe(model=densenet_model,
         data_loader=data_loader,

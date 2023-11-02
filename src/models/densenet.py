@@ -8,7 +8,7 @@ class DenseNet201(nn.Module):
     def __init__(self, n_classes:int = 2) -> None:
         super().__init__()
         self.baseline = torchvision.models.densenet201(weights='DEFAULT')
-        self.baseline = nn.Sequential(*(list(self.baseline.children())[:-1]))
+        #self.baseline = nn.Sequential(*(list(self.baseline.children())[:-1]))
     
         # Congelando o pesos de todas as camadas
         for param in self.baseline.parameters():
@@ -20,7 +20,7 @@ class DenseNet201(nn.Module):
         self.baseline.classifier = nn.Linear(1920, n_classes)
 
     def forward(self, x:Tensor) -> Tensor:
-        x = self.baseline[0](x)
+        x = self.baseline.features(x)
         x = self.baseline.relu(x)
         x = self.baseline.avgpool(x)
         x = flatten(x, 1)

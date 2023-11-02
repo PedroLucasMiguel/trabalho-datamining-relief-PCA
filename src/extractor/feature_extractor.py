@@ -3,7 +3,7 @@ from .arff import ArffLib
 import torch.nn as nn
 import torch.cuda as cuda
 
-RESNET_N_FEATURES = 1280
+RESNET_N_FEATURES = 2048
 DENSENET_N_FEATURES = 1920
 
 def fe(model:nn.Module = None, 

@@ -3,11 +3,9 @@ from .arff import ArffLib
 import torch.nn as nn
 import torch.cuda as cuda
 
-RESNET_N_FEATURES = 1280
-DENSENET_N_FEATURES = 1920
-
 def fe(model:nn.Module = None, 
         data_loader:DataLoader = None,
+        n_features:int = 100,
         arff_file_name:str = 'resnet50',
         arff_file_path:str = '.') -> None:
     
@@ -27,18 +25,18 @@ def fe(model:nn.Module = None,
 
     arff = ArffLib(arff_file_name, 
                     arff_file_path, 
-                    RESNET_N_FEATURES if model.__class__.__name__ == 'ResNet50' else DENSENET_N_FEATURES)
+                    n_features)
         
     arff.create_file()
 
-    print(f"Starting extraction for {model.__class__.__name__}...")
+    print(f"Iniciando extração do modelo {model.__class__.__name__}...")
 
-    for batch_idx, (data, target) in enumerate(data_loader):
+    for _, (data, target) in enumerate(data_loader):
         data, target = data.to(device), target.to(device)
         model(data)
 
         arff.append_to_file(activations_output['avg_pool'], target[0])
 
-    print("Finished extraction...")
+    print("Extração finalizada...")
 
     arff.close_file()

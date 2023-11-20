@@ -2,11 +2,13 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from models.resnet import ResNet50
 from models.densenet import DenseNet201
+from models.efficientnet import EfficientNetB0
 from torch.utils.data import DataLoader
 from extractor.feature_extractor import *
 import torch.optim as optim
 import torch
 import json
+import os
 
 from ignite.handlers import ModelCheckpoint
 from ignite.contrib.handlers import global_step_from_engine
@@ -21,6 +23,10 @@ BATCH_SIZE = 16
 EPOCHS = 20
 LR = 0.0001
 
+RESNET_N_FEATURES = 1280
+DENSENET_N_FEATURES = 1920
+EFFICIENTNET_N_FEATURES = 1280
+
 def extract_features(dataset_path:str = '../dataset') -> None:
     # Criando o dataset
     transform = transforms.Compose([
@@ -34,16 +40,25 @@ def extract_features(dataset_path:str = '../dataset') -> None:
 
     resnet_model = ResNet50(2)
     densenet_model = DenseNet201(2)
+    efficientnet_model = EfficientNetB0(2)
 
     fe(model=resnet_model,
         data_loader=data_loader,
+        n_features=RESNET_N_FEATURES,
         arff_file_name="resnet50_avgpool",
-        arff_file_path="..\\output")
+        arff_file_path=os.path.join("..", "output"))
 
     fe(model=densenet_model,
         data_loader=data_loader,
+        n_features=DENSENET_N_FEATURES,
         arff_file_name="densenet201_avgpool",
-        arff_file_path="..\\output")
+        arff_file_path=os.path.join("..", "output"))
+    
+    fe(model=efficientnet_model,
+        data_loader=data_loader,
+        n_features=EFFICIENTNET_N_FEATURES,
+        arff_file_name="efficientnetb0_avgpool",
+        arff_file_path=os.path.join("..", "output"))
 
 def train_validade_test_model(model_name:str, dataset_path:str = '../dataset') -> None:
     
@@ -73,12 +88,15 @@ def train_validade_test_model(model_name:str, dataset_path:str = '../dataset') -
     # (Suporte apenas para placas NVIDIA)
     device = f"cuda" if cuda.is_available() else "cpu"
 
-    if model_name == 'ResNet50':
-        model = ResNet50(2).to(device)
-    else:
-        model = DenseNet201(2).to(device)
+    match model_name:
+        case "ResNet50":
+            model = ResNet50(2).to(device)
+        case "DenseNet201":
+            model = DenseNet201(2).to(device)
+        case "EfficientNetB0":
+            model = EfficientNetB0(2).to(device)
 
-    print(f"Treinando utilizando: {device}")
+    print(f"Treinando {model.__class__.__name__} utilizando: {device}")
 
     # Definindo o otimizador e a loss-functions
     optimizer = optim.Adamax(model.parameters(), lr=LR)
@@ -121,7 +139,7 @@ def train_validade_test_model(model_name:str, dataset_path:str = '../dataset') -
     
     # Definindo o processo de checkpoint do modelo
     model_checkpoint = ModelCheckpoint(
-        '../output',
+        os.path.join("..", "output"),
         require_empty=False,
         n_saved=1,
         filename_prefix=f"{model.__class__.__name__}_train",
@@ -139,12 +157,39 @@ def train_validade_test_model(model_name:str, dataset_path:str = '../dataset') -
     print(f"\nTrain finished for model {model.__class__.__name__}")
 
     # Salvando as métricas em um arquivo .json
-    with open(f"../output/{model.__class__.__name__}_training_results.json", "w") as f:
+    with open(os.path.join("..", "output", f"{model.__class__.__name__}_training_results.json"), "w") as f:
         json.dump(final_json, f)
 
 if __name__ == "__main__":
 
+    # Seed para manter reprodutibilidade
     torch.manual_seed(0)
-    #train_validade_test_model('ResNet50')
-    #train_validade_test_model('DenseNet201')
-    extract_features('../dataset')
+
+    try:
+        os.mkdir(os.path.join("..", "output"))
+    except OSError as _:
+        pass
+    
+    terminate_execution = False
+    
+    while not terminate_execution:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("Escolha uma das opções abaixo:")
+        print("[1] - Extrair as características dos modelos")
+        print("[2] - Treinar a FC de cada modelo")
+        print("[3] - Finalizar programa")
+
+        op = int(input("Resposta: "))
+
+        match op:
+            case 1:
+                extract_features(os.path.join("..", "dataset"))
+
+                input("\nPressione ENTER para voltar ao menu")
+            case 2:
+                train_validade_test_model('DenseNet201')
+                input("\nPressione ENTER para voltar ao menu")
+            case _:
+                terminate_execution = True
+
+    

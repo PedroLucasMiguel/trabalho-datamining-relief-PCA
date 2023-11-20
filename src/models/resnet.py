@@ -32,7 +32,3 @@ class ResNet50(nn.Module):
         x = self.baseline.fc(x)
 
         return x
-
-    
-if __name__ == '__main__':
-    print(ResNet50(2))

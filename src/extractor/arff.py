@@ -27,7 +27,7 @@ class ArffLib:
         self.__file.write("@ATTRIBUTE class {0,1}\n\n")
         self.__file.write("@DATA\n\n")
 
-        print(f"ArffLib: {self.file_name} was created on {self.file_path}. The stream is now open!")
+        print(f"ArffLib: O arquivo {self.file_name} foi criado em {self.file_path}. A stream está aberta!")
 
     def append_to_file(self, activations, label:int) -> None:
         for activation in activations:

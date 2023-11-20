@@ -27,7 +27,3 @@ class DenseNet201(nn.Module):
         x = self.baseline.classifier(x)
 
         return x
-
-
-if __name__ == "__main__":
-    print(DenseNet201(2))
